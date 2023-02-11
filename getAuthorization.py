@@ -1,3 +1,7 @@
+# Sean Baker 
+# 2023-02-11
+#Brightspace API Functions
+
 import requests_oauthlib
 import webbrowser
 import json
@@ -5,7 +9,7 @@ import os
 import easygui
 import requests
 from api_handler import BrightspaceAPI
-
+import time 
 from appFuncs import getConfig as getConfig
 from appFuncs import saveConfig as saveConfig
 from appFuncs import authorize as authorize
@@ -22,10 +26,19 @@ else:
     auth = authorize(tokenConfigFile)
     webbrowser.open_new_tab(auth)
     print('Authorizing...')
-    print('Please enter the URL from the browser:')
-    enterAuthCode = input()
+    time.sleep(5)
 
-    ac = parseAuthCode(enterAuthCode)
+    # Check the URL of the currently open tab in the web browser
+    tabs = webbrowser._getwindows()
+    for tab in tabs:
+        url = tab.get_current_url()
+        if conf["redirect_uri"] in url:
+            AuthCode = parseAuthCode(url) # Parse the auth code from the URL
+        else:
+            print('Please enter the URL from the browser:')
+            AuthCode = input()
+
+    ac = parseAuthCode(AuthCode)
     conf['auth_code'] = ac[0]
     conf['state'] = ac[1]
 
@@ -115,7 +128,6 @@ while choice != 0:
     elif choice == 11:
         org_structure = api.get_org_structure()
         print(org_structure)
-
     elif choice == 12:
         username = input("Enter the username: ")
         user_id = api.get_user_id_from_username(username)

@@ -1,13 +1,7 @@
-# Damon Adkins -- kk4tza@gmail.com
-# 11/27/2019
-#
-# Functions used to read config file, obtain tokens
-# and format strings.
-#
-# python 3.6
-#
-# pip install requests and requests_oauthlib
-#
+# Sean Baker 
+# 2023-02-11
+#OAuth2 Functions
+
 
 
 import requests
