@@ -132,5 +132,8 @@ while choice != 0:
         username = input("Enter the username: ")
         user_id = api.get_user_id_from_username(username)
         print(user_id)
-
-        
+    elif choice == 13: 
+        user_id = int(input("Enter the user ID: "))
+        org_unit_id = int(input("Enter the org unit ID: "))
+        unenroll_user = api.unenroll_student_from_class(org_unit_id, user_id)
+        print(unenroll_user)        

@@ -61,6 +61,17 @@ class BrightspaceAPI:
         org_units = response.json()
         return org_units
 
+    def check_student_course_completion(self, org_unit_id, user_id):
+        url = self.api_url + '/d2l/api/lp/1.0/enrollments/orgUnits/' + str(org_unit_id) + '/users/' + str(user_id)
+        headers = {
+            'Authorization': 'Bearer ' + self.access_token,
+            'Accept': 'application/json'
+        }
+        response = requests.get(url, headers=headers)
+        enrollment = response.json()
+        if response.status_code == 200 and enrollment['IsCourseCompleted'] == True:
+            return True
+        return False
     def check_course_completion(self, org_unit_id):
         url = self.api_url + '/d2l/api/lp/1.0/enrollments/orgUnits/' + str(org_unit_id) + '/users/'
         headers = {
@@ -69,10 +80,11 @@ class BrightspaceAPI:
         }
         response = requests.get(url, headers=headers)
         enrollments = response.json()
+        completed_users = []
         for enrollment in enrollments['Items']:
             if enrollment['IsCourseCompleted'] == True:
-                return True
-        return False
+                completed_users.append(enrollment['User']['Identifier'])
+        return completed_users
 
     def get_org_name(self, org_unit_id):
         url = self.api_url + '/d2l/api/lp/1.0/orgstructure/' + str(org_unit_id)
@@ -123,9 +135,9 @@ class BrightspaceAPI:
             users = response.json()
             return users[0]['UserId']
         return None
-    
-    def unenroll_student_from_class(self, username, class_id):
-        url = self.api_url + '/d2l/api/lp/1.0/enrollments/classes/' + str(class_id) + '/users/' + str(self.get_user_id_from_username(username))
+
+    def unenroll_student_from_class(self, userid, class_id):
+        url = self.api_url + '/d2l/api/lp/1.0/enrollments/classes/' + str(class_id) + '/users/' + str(userid)
         response = requests.delete(url, headers=self.headers)
         if response.status_code == 204:
             return True
@@ -155,8 +167,11 @@ class BrightspaceAPI:
 
     def get_org_tree(self, org_units=6606):
         orgs_data = self.get_org_units(org_units)
-       
+
         if len(orgs_data) != 0:
+            while orgs_data["Identifier"] == None:
+                continue
+
             for org in orgs_data:
                 if org['Identifier'] not in self.org_structure:
                     self.org_structure[org['Identifier']] = {
@@ -180,6 +195,7 @@ class BrightspaceAPI:
             self.get_org_tree(org_id, self.org_structure, self.org_courses)
 
         return self.org_structure
+    
 
 
         
