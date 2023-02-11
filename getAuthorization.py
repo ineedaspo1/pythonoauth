@@ -14,7 +14,6 @@ from requests_oauthlib import OAuth2Session
 import webbrowser
 import json
 import easygui
-
 from appFuncs import getConfig as getConfig
 from appFuncs import saveConfig as saveConfig
 from appFuncs import authorize as authorize
