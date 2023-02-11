@@ -108,14 +108,49 @@ class BrightspaceAPI:
             'Authorization': 'Bearer ' + self.access_token,
             'Accept': 'application/json'
         }
-        url = self.base_url + '/d2l/api/lp/1.0/users/whoami'
+        url = self.api_url + '/d2l/api/lp/1.0/users/whoami'
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             data = response.json()
             return data['Identifier']
         else:
             return None
+    def get_user_id_from_username(self, username):
+        url = self.api_url + '/d2l/api/lp/1.0/users/'
+        params = {'userName': username}
+        response = requests.get(url, headers=self.headers, params=params)
+        if response.status_code == 200:
+            users = response.json()
+            return users[0]['UserId']
+        return None
+    
+    def unenroll_student_from_class(self, username, class_id):
+        url = self.api_url + '/d2l/api/lp/1.0/enrollments/classes/' + str(class_id) + '/users/' + str(self.get_user_id_from_username(username))
+        response = requests.delete(url, headers=self.headers)
+        if response.status_code == 204:
+            return True
+        return False
 
+    def get_enrolled_courses(self, username):
+        user_id = self.get_user_id_from_username(username)
+        url = self.api_url + '/d2l/api/lp/1.0/enrollments/users/' + str(user_id) + '/orgs/'
+        response = requests.get(url, headers=self.headers)
+        if response.status_code == 200:
+            courses = response.json()
+            return courses
+        return None
+
+    def enroll_student_in_class(self, username, class_id):
+        user_id = self.get_user_id_from_username(username)
+        url = self.api_url + '/d2l/api/lp/1.0/enrollments/classes/' + str(class_id) + '/users/' + str(user_id)
+        data = {
+            'IsActive': True,
+            'RoleId': 1
+        }
+        response = requests.post(url, headers=self.headers, json=data)
+        if response.status_code == 201:
+            return True
+        return False
     
 
     def get_org_tree(self, org_units=6606):
