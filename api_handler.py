@@ -17,6 +17,7 @@ class BrightspaceAPI:
         self.org_structure = {}
         self.org_tree = []
         self.org_courses = []
+        
 
     def get_courses(self):
         url = self.api_url + '/d2l/api/lp/1.0/courses/'
@@ -72,6 +73,17 @@ class BrightspaceAPI:
         if response.status_code == 200 and enrollment['IsCourseCompleted'] == True:
             return True
         return False
+    def get_user_progress(self, orgUnitId, userId):
+        api_url = f'{self.api_url}/d2l/api/le/1.21/{orgUnitId}/content/userprogress/'
+        params = {
+            'UserId': userId
+        }
+        response = requests.get(api_url, headers=self.headers, params=params)
+        return response
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
     def check_course_completion(self, org_unit_id):
         url = self.api_url + '/d2l/api/lp/1.0/enrollments/orgUnits/' + str(org_unit_id) + '/users/'
         headers = {
@@ -137,7 +149,7 @@ class BrightspaceAPI:
         return None
 
     def unenroll_student_from_class(self, userid, class_id):
-        url = self.api_url + '/d2l/api/lp/1.0/enrollments/classes/' + str(class_id) + '/users/' + str(userid)
+        url = self.api_url + '/d2l/api/lp/1.0/enrollments/orgunits/' + str(class_id) + '/users/' + str(userid)
         response = requests.delete(url, headers=self.headers)
         if response.status_code == 204:
             return True
@@ -163,7 +175,19 @@ class BrightspaceAPI:
         if response.status_code == 201:
             return True
         return False
-    
+    def create_student(self, first_name, last_name, username, password, email):
+        url = self.api_url + '/d2l/api/lp/1.0/users/'
+        data = {
+            'FirstName': first_name,
+            'LastName': last_name,
+            'UserName': username,
+            'Password': password,
+            'Email': email
+        }
+        response = requests.post(url, headers=self.headers, json=data)
+        if response.status_code == 201:
+            return response.json()
+        return None
 
     def get_org_tree(self, org_units=6606):
         orgs_data = self.get_org_units(org_units)
@@ -198,7 +222,17 @@ class BrightspaceAPI:
     
 
 
-        
+    def get_user_grades(self, course_id, user_id):
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json"
+        }
+        url = f"{self.api_url}/d2l/api/le/1.0/{self.app_id}/grades/values/orgUnit/{course_id}/user/{user_id}"
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            grades = response.json()
+            return grades
+        return None
 
     def get_courses(self, org_id=6606):
 
@@ -217,4 +251,24 @@ class BrightspaceAPI:
         response = requests.get(url, headers=self.headers, params=params)
         if response.status_code == 200:
             users = response.json()
-        return users['UserId']
+            return users['UserId']
+        return None
+
+   
+    # def get_enrollments(self, course_id):
+    #     url = f"{self.api_url}/d2l/api/lp/1.0/enrollments/organizations/{course_id}/users/"
+    #     response = requests.get(url, headers=self.headers)
+    #     if response.status_code == 200:
+    #         enrollments = response.json()
+    #         return enrollments
+    #     return None
+    def get_enrollments(self, course_id):
+        enrollments_response = requests.get(f'{self.api_url}/d2l/api/lp/1.0/enrollments/?orgUnitId={course_id}', headers=self.headers)
+        return enrollments_response
+        
+        enrollments = []
+        for enrollment in enrollments_data['Items']:
+            user_id = enrollment['User']['Identifier']
+            role = enrollment['Role']['Name']
+            enrollments.append({'user_id': user_id, 'role': role})
+        return enrollments

@@ -20,23 +20,15 @@ tokenConfigFile = 'tokenConfig'
 
 conf = getConfig(tokenConfigFile)
 
-if 'access_token' in conf and 'refresh_token' in conf:
-    print('Access token and refresh token already available.')
-else:
+if conf['access_token'] != '':
     auth = authorize(tokenConfigFile)
     webbrowser.open_new_tab(auth)
     print('Authorizing...')
-    time.sleep(5)
+    
 
-    # Check the URL of the currently open tab in the web browser
-    tabs = webbrowser._getwindows()
-    for tab in tabs:
-        url = tab.get_current_url()
-        if conf["redirect_uri"] in url:
-            AuthCode = parseAuthCode(url) # Parse the auth code from the URL
-        else:
-            print('Please enter the URL from the browser:')
-            AuthCode = input()
+    
+    AuthCode = input("please enter code:")
+
 
     ac = parseAuthCode(AuthCode)
     conf['auth_code'] = ac[0]
@@ -49,44 +41,38 @@ else:
     saveConfig(tokenConfigFile, conf)
     print('Access token and refresh token saved.')
 
-print('Access token:', conf['access_token'])
-print('Refresh token:', conf['refresh_token'])
-include_whoami = easygui.ynbox(
-    'Would you like to include a WHOAMI GET call in the application?')
-if include_whoami:
-    headers = {'Authorization': 'Bearer ' + conf['access_token']}
-    r = requests.get(
-        'https://fieldx.brightspace.com/d2l/api/whoami', headers=headers)
-    if r.status_code == 200:
-        print(r.json())
-    else:
-        print('WHOAMI GET call failed with status code:', r.status_code)
+    print('Access token:', conf['access_token'])
+    print('Refresh token:', conf['refresh_token'])
+
 
 
 access_token = conf["access_token"]
+print(access_token)
 api_url = "https://davidm.brightspacedemo.com"
 
 api = BrightspaceAPI(access_token, api_url)
 
 print("What would you like to do?")
-print("1. Get Courses")
-print("2. Get Enrollments")
-print("3. Get Course Details")
-print("4. Get User Details")
-print("5. Create Discussion Topic")
-print("6. Get Org Units")
-print("7. Check Course Completion")
-print("8. Get Org Name")
-print("9. Find Org with Students")
-print("10. Get User ID")
-print("11. Get Org Structure")
-print("12. Get User ID from Username")
+print("1. Get List of Courses")
+print("2. Get User Enrollments")
+print("3. View Course Details")
+print("4. View User Profile Information")
+print("5. Create a New Discussion Topic")
+print("6. Get Organization Units")
+print("7. Check a User's Course Completion Status")
+print("8. Get the Name of an Organization")
+print("9. Find Organizations with Enrolled Students")
+print("10. Get a User's ID")
+print("11. View the Structure of an Organization")
+print("12. Get User ID from User's Email Address")
+print("13. Unenroll a Student from a Class")
+print("14. Get a User's Enrolled Courses")
+print("15. Create a New Student")
 
-choice = 1
 
-while choice != 0:
-
-    choice = int(input("Enter the number of your choice: ")) 
+choice = 0
+while choice <= 20:
+    choice = int(input("Enter the number of your choice: "))
     if choice == 1:
         courses = api.get_courses()
         print(courses)
@@ -132,8 +118,38 @@ while choice != 0:
         username = input("Enter the username: ")
         user_id = api.get_user_id_from_username(username)
         print(user_id)
-    elif choice == 13: 
+    elif choice == 13:
         user_id = int(input("Enter the user ID: "))
         org_unit_id = int(input("Enter the org unit ID: "))
         unenroll_user = api.unenroll_student_from_class(org_unit_id, user_id)
-        print(unenroll_user)        
+        print(unenroll_user)
+    elif choice == 14:
+        username = input("Enter the user name: ")
+        enrolled_courses = api.get_enrolled_courses(username=username)
+        print(enrolled_courses)
+    elif choice == 15:
+        first_name = input("Enter the first name: ")
+        last_name = input("Enter the last name: ")
+        username = input("Enter the username: ")
+        password = input("Enter the password: ")
+        email = input("Enter the email: ")
+        create_student = api.create_student(first_name, last_name, username, password, email)
+        print(create_student)
+    elif choice == 16:
+        course_id = int(input("Enter the course ID: "))
+        enrollments = api.get_enrollments(course_id)
+        print(enrollments)
+    elif choice == 17:
+        course_id = int(input("Enter the course ID: "))
+        user_id = int(input("Enter the user ID: "))
+        user_progress = api.get_user_progress(course_id, user_id)
+        print(user_progress)
+    elif choice == 18:
+        course_id = int(input("Enter the course ID: "))
+        user_id = int(input("Enter the user ID: "))
+        user_grade = api.get_user_grades(course_id, user_id)
+        print(user_grade)
+
+
+
+
